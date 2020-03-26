@@ -5,7 +5,7 @@ NOTE: TP de deux slots de 1h20
 ## Nom des étudiants de ce binôme 
 WARNING: NE PAS OUBLIER DE MENTIONNER LES DEUX NOMS !
 
-#XXX# et #YYY#
+Remaud et Vannini
 
 Commentaires éventuels des étudiants : #XXXXXX#
 
@@ -46,11 +46,37 @@ _Temps estimé : 1 h_
 
 * Observer le code du projet `todolist-debut-ex1`
 
-IMPORTANT: [Question]  Que constatez-vous  en terme de découpage du code ? Imaginez un projet d'entreprise constitué de centaines de classes ainsi structuré. Que risque-t-il d'arriver ?
+IMPORTANT: [Question]  Que constatez-vous en terme de découpage du code ? Imaginez un projet d'entreprise constitué de centaines de classes ainsi structuré. Que risque-t-il d'arriver ?
+
+Réponse :
+
+Le code est découpé sous forme de class. Chaque class à sa fonctionnalité, il y’a donc une dépendance entre elle. De plus toutes les classes sont dans le même répertoire. Et chaque class en appel d’autre class en fonction de son utilité.
+
+TodoItem.java : une interface représentant l’aspect d’un item.
+TodoItemRepository.java : Permettant d’afficher une liste d’items.
+TodolistApplication.java : Représentant l'application en elle même .
+TodoListController.java : Représentant le controller de l'application.
+
+Vu à premier abord elle suit un pattern Modèle, Vue, Controller (MVC)
+
+Cette méthode semble très bien dans un premier temps puisque l'on peut penser que cela nous permet de savoir où chercher directement l'information que l'on cherche mais si l'on étend cette méthode sur un projet à plus d’une centaine de class, cela sera plutôt confus et illisible de tous avoir dans un seul et même répertoire, il sera difficile de s’y retrouver par la suite en terme de maintenance par exemple.
 
 IMPORTANT: [Question]  Que se passe-t-il si l'on renomme une colonne de la base de donnée ?
 
+Réponse :
+Il y’a un risque d’incohérence puisqu’il existe un lien de mapping entre la base de donnée et l’objet. Si l’on ajoute une nouvelle colonne, y’a donc un risque que cela produise une erreur.
+
 IMPORTANT: [Question]  Où se trouve le code métier (voir la règle de gestion RG1) ? cette règle est-elle facilement testable par un test unitaire ? 
+
+Réponse :
+Le code métier (RG1) se trouve dans la class TodoListController.java, le contrôleur de l’application. Sont présent les méthodes todoItems() et finalContent().
+
+Lors de l’exécution on vérifie que pour chaque TodoItem de la liste qui sont retournée, on vérifie sa durée de vie, si il est supérieur ou non à 24h.
+
+D’après nos recherche il n’est pas facilement testable puisqu’il nécessite un mocker, ceci est possible en utilisant un mockito.
+
+Il est donc facilement testable par un test unitaire puisque la méthode nous retourne une liste, on peut ainsi la parcourir dans le test unitaire pour voir il y’a des éléments “LATE” signifiant que cette élément à dépasser les 24H. 
+
 
 * Lancer une base PostgreSQL en Docker :
 ```bash
@@ -58,14 +84,35 @@ docker run --rm -it -e POSTGRES_PASSWORD=password -p 5432:5432 postgres
 ```
 IMPORTANT: [Question]  Expliquer cette ligne de commande (y compris les options utilisées)
 
+Réponse :
+docker run ... postgre : lance un conteneur docker postgre
+L'option --rm permet de : Vider le conteneur
+L'option -i permet d'afficher les logs 
+L’option -t va permettre d'exécuter des commandes dans le conteneur
+L’option -p 5432:5432 : associé de port entre conteneur vers la machine hôte
+postgres : nom de l’image à démarrer
+
+
 IMPORTANT: [Question]  Lancer les commandes `docker ps` et `ps -eaf | grep postgres`, à quoi correspondent les lignes affichées ? Que remarquez vous ?
+
+Réponse :
+docker ps : permet d'avoir la liste de tous nos conteneurs présent sur docker. En nous détaillant l’ID du Conteneur, l’image système présent sur le conteneur, la commande, la date de création, l’état de la machine, le port sur lequel est lancé le conteneur, le nom.
+
+Nos remarques :
+Nous avons une machine présente sur docker avec postgre dessus.
+ps -eaf | grep postgres : permet de connaître les processus lié à postgres qui sont exécuté sur la machine. Nous avons aussi notre ligne tapé précédemment de docker run … postgres, qui apparaît et 8 autres lignes contenant l’intitulé postgres.
 
 * Compléter le code manquant dans la méthode `TodoListController.createTodoItem()`
 
+Voici le code ajouté dans la méthode : this.todoItemRepository.save(todoItem);
+
 * Pourquoi `todoItemRepository` est-il `null` ? Quelle est la meilleure façon de l'injecter ? Modifier le code en conséquence.
 
-* Tester vos endpoints avec un client REST.
+Réponse :
 
+Le “null” provient du fait qu’il manque l’injection de todoItemRepository. La meilleure façon de l’injecter est de le faire directement par le constructeur. On ajoute aussi l’annotation @Inject au dessus de la méthode, en important javax.inject.Inject.
+
+* Tester vos endpoints avec un client REST.
 
 [NOTE]
 ====
@@ -76,7 +123,7 @@ IMPORTANT: [Question]  Lancer les commandes `docker ps` et `ps -eaf | grep postg
 {
     "id": "0f8-06eb17ba8d34",
     "time": "2020-02-27T10:31:43Z",
-    "content": "Faire les courses"
+    "content": "Fait à manger"
   }
 ```
 ====
@@ -87,7 +134,6 @@ IMPORTANT: [Question]  Lancer les commandes `docker ps` et `ps -eaf | grep postg
 _Temps estimé : 1 h_
 
 * Partir du projet `todolist-debut-ex2`
-
 
 NOTE: le projet a été refactoré suivant les principes de l'architecture hexagonale : 
 
@@ -100,9 +146,29 @@ Source : http://leanpub.com/get-your-hands-dirty-on-clean-architecture[Tom Hombe
 
 IMPORTANT: [Question] En observant le code, donnez les grands principes de cette architecture et les illustrer par des exemples de code.
 
+Réponse :
+Cette architecture se base sur deux principes fondamentaux à savoir la séparation entre le code métier et le code technique et l’inversion de dépendance (le code technique dépend du code métier et non pas l’inverse). Cette architecture se base également sur l’utilisation de ports et d’adaptateurs. La partie interne de cette architecture contiendra uniquement le code métier.
+
 IMPORTANT: [Question] Avec quel pattern est implémenté ici le principe d'inversion de dépendance ? (par exemple le domaine n'a aucune dépendance directe vers l'adaptateur JPA de persistance mais pourtant, il cette dernière est appelé _in fine_). Précisez les lignes de code importantes.
 
-IMPORTANT: [Question] Qu'est ce que l'anti-pattern domaine anémique ? à quoi le reconnaît-on ? Est-il courant dans les modèles en couche classiques ? L'architecture hexagonale change-t-elle cette situation ?
+Réponse :
+C’est avec le pattern "principe de ségrégation des interfaces" qu’est implanté le principe d’inversion de dépendance. Si l’on regarde le code ci-dessous, aucun appel de service inutile n’est effectué.
+package com.acme.todolist.application.port.in;
+import java.util.List;
+import com.acme.todolist.domain.TodoItem;
+public interface GetTodoItems {
+/**
+ *
+ * @return tous les items
+ */
+List<TodoItem> getAllTodoItems();
+} 
+
+
+IMPORTANT: [Question] Qu'est ce que l'anti-pattern domaine anémique ? à quoi le reconnaît-on ? Est-il courant dans les modèles en couche classiques ? L'architecture hexagonale change-t-elle cette situation ? 
+
+Réponse :
+L’anti-pattern domaine anémique est un modèle où les objets de domaine contiennent peu voir pas de logique métier. On le reconnaît aisément si dans une classe, aucune méthode métier n’est implémentée ou alors très peu. Ce n’est pas un pattern courant dans les modèles en couche classiques et l’architecture hexagonale ne change pas la situation.
 
 Complétez ce code avec une fonctionnalité de création de `TodoItem`  persisté en base et appelé depuis un endpoint REST `POST /todos` qui renvoi un code `201` en cas de succès. La fonctionnalité à implémenter est contractualisée par le port d'entrée `AddTodoItem`.
 
@@ -113,4 +179,19 @@ _Temps estimé : 20 mins_
 
 * Implémentez (en junit) des TU sur la règle de gestion qui consiste à afficher `[LATE!]` dans la description d'un item en retard de plus de 24h.
 
-* Quels types de tests devra-t-on écrire pour les adapteurs ? Que teste-on dans ce cas ? S'il vous reste du temps, écrivez quelques uns de ces types de test.
+* Quels types de tests devra-t-on écrire pour les adapteurs ? 
+
+Réponse :
+Nous devrons écrire des tests d’intégration pour les adaptateurs, afin de vérifier justement de leur intégrité.
+
+* Que teste-on dans ce cas ? 
+
+Réponse :
+On va tester les connexion de ’application avec des services externes, comme l’API par exemple.
+
+S'il vous reste du temps, écrivez quelques uns de ces types de test.
+
+
+
+
+
