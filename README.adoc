@@ -73,8 +73,6 @@ Le code métier (RG1) se trouve dans la class TodoListController.java, le contr�
 
 Lors de l’exécution on vérifie que pour chaque TodoItem de la liste qui sont retournée, on vérifie sa durée de vie, si il est supérieur ou non à 24h.
 
-D’après nos recherche il n’est pas facilement testable puisqu’il nécessite un mocker, ceci est possible en utilisant un mockito.
-
 Il est donc facilement testable par un test unitaire puisque la méthode nous retourne une liste, on peut ainsi la parcourir dans le test unitaire pour voir il y’a des éléments “LATE” signifiant que cette élément à dépasser les 24H. 
 
 
